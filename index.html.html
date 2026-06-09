@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>6º Arraiá - Sítio do Guerreiro</title>
+  <title>6º Arraiá</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Josefin+Sans:wght@400;600;700&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
@@ -649,6 +649,71 @@
     }
     .btn-modal-confirm:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,.25); }
 
+    /* ===== COMIDA CHECK NO FORM ===== */
+    .comida-check-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 8px;
+      margin-top: .5rem;
+    }
+    .comida-check-item {
+      display: flex; align-items: center; gap: 8px;
+      background: #fff;
+      border: 2px solid #e0d5c5;
+      border-radius: 10px;
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: all .2s;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: .85rem;
+      font-weight: 600;
+      user-select: none;
+    }
+    .comida-check-item:hover { border-color: var(--orange); background: #fffbf0; }
+    .comida-check-item.selected { border-color: var(--orange); background: #fff8e1; }
+    .comida-check-item input[type=checkbox] { accent-color: var(--orange); width: 16px; height: 16px; cursor: pointer; }
+
+    /* ===== OPCAO SINUCA/RIFA NO FORM ===== */
+    .opcao-participar {
+      display: flex; gap: 1rem; flex-wrap: wrap;
+    }
+    .opcao-btn {
+      flex: 1; min-width: 120px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: #fff; border: 2px solid #e0d5c5;
+      border-radius: 12px; padding: 12px;
+      cursor: pointer; transition: all .2s;
+      font-family: 'Josefin Sans', sans-serif;
+      font-weight: 700; font-size: .9rem;
+    }
+    .opcao-btn:hover { border-color: var(--orange); }
+    .opcao-btn.sim.active  { background: #e8f5e9; border-color: var(--green); color: var(--green); }
+    .opcao-btn.nao.active  { background: #fce4ec; border-color: var(--red);   color: var(--red); }
+    .opcao-btn input { display: none; }
+
+    /* ===== PIX BOX ===== */
+    .pix-box {
+      background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
+      border: 2px solid var(--green);
+      border-radius: 14px;
+      padding: 1.2rem 1.5rem;
+      display: flex; align-items: center; gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .pix-box .pix-icon { font-size: 2rem; }
+    .pix-box .pix-info { flex: 1; }
+    .pix-box .pix-label { font-family: 'Josefin Sans', sans-serif; font-weight: 700; font-size: .8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--green); }
+    .pix-box .pix-key   { font-family: 'Josefin Sans', sans-serif; font-weight: 700; font-size: 1rem; color: var(--dark); margin: 2px 0; }
+    .pix-box .pix-note  { font-size: .8rem; color: #555; }
+    .btn-copy-pix {
+      background: var(--green); color: #fff; border: none;
+      border-radius: 8px; padding: 8px 16px;
+      font-family: 'Josefin Sans', sans-serif; font-weight: 700;
+      font-size: .8rem; cursor: pointer; transition: all .2s;
+      white-space: nowrap;
+    }
+    .btn-copy-pix:hover { background: #219a52; transform: translateY(-1px); }
+
     /* Scrollbar */
     ::-webkit-scrollbar { width: 8px; }
     ::-webkit-scrollbar-track { background: #f0e9dc; }
@@ -680,7 +745,7 @@
 <!-- ===== NAVBAR ===== -->
 <nav class="navbar navbar-expand-lg">
   <div class="container-fluid px-3 px-lg-5">
-    <a class="navbar-brand" href="#" onclick="showPage('home')">🎪 6º Arraiá </a>
+    <a class="navbar-brand" href="#" onclick="showPage('home')">🎪 6º Arraiá</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
       <span class="navbar-toggler-icon"></span>
     </button>
@@ -824,13 +889,74 @@
 
       <div id="acompanhantes-container"></div>
 
+      <!-- COMIDAS TÍPICAS -->
+      <div class="divider mt-4"></div>
+      <h5 class="mb-1" style="font-family:'Abril Fatface',serif; color:var(--red);">🌽 Comidas Típicas</h5>
+      <p class="text-muted mb-3" style="font-size:.9rem;">Selecione o que você vai trazer para compartilhar</p>
+      <div class="comida-check-grid" id="comidas-form-grid"></div>
+
+      <!-- RIFA -->
+      <div class="divider mt-4"></div>
+      <h5 class="mb-1" style="font-family:'Abril Fatface',serif; color:var(--red);">🎟️ Rifa Beneficente</h5>
+      <p class="text-muted mb-3" style="font-size:.9rem;">Deseja participar da rifa? R$ 20,00 por número.</p>
+      <div class="opcao-participar mb-3">
+        <label class="opcao-btn sim" id="rifa-sim" onclick="toggleOpcao('rifa','sim')">
+          <input type="radio" name="rifa-opc" value="sim"> ✅ Sim, quero participar
+        </label>
+        <label class="opcao-btn nao active" id="rifa-nao" onclick="toggleOpcao('rifa','nao')">
+          <input type="radio" name="rifa-opc" value="nao" checked> ❌ Não vou participar
+        </label>
+      </div>
+      <!-- Seleção de número da rifa (aparece só se sim) -->
+      <div id="rifa-num-section" style="display:none">
+        <label class="form-label">Escolha seu número (001–100)</label>
+        <div class="rifa-grid" id="rifa-form-grid" style="margin-bottom:.5rem"></div>
+        <div id="rifa-num-escolhido" style="font-family:'Josefin Sans',sans-serif; font-size:.9rem; color:var(--orange); min-height:1.4em; margin-bottom:.8rem;"></div>
+        <div class="pix-box">
+          <div class="pix-icon">💸</div>
+          <div class="pix-info">
+            <div class="pix-label">Pagamento via PIX</div>
+            <!-- ✏️ ALTERE A CHAVE PIX ABAIXO -->
+            <div class="pix-key" id="pix-rifa-key">chavepix@email.com</div>
+            <div class="pix-note">Envie R$ 20,00 e leve o comprovante no dia</div>
+          </div>
+          <button class="btn-copy-pix" onclick="copiarPix('pix-rifa-key')"><i class="bi bi-clipboard me-1"></i>Copiar</button>
+        </div>
+      </div>
+
+      <!-- SINUCA -->
+      <div class="divider mt-4"></div>
+      <h5 class="mb-1" style="font-family:'Abril Fatface',serif; color:var(--red);">🎱 Torneio de Sinuca</h5>
+      <p class="text-muted mb-3" style="font-size:.9rem;">Deseja se inscrever no torneio? R$ 20,00 por participante.</p>
+      <div class="opcao-participar mb-3">
+        <label class="opcao-btn sim" id="sinuca-sim" onclick="toggleOpcao('sinuca','sim')">
+          <input type="radio" name="sinuca-opc" value="sim"> 🎱 Sim, vou jogar!
+        </label>
+        <label class="opcao-btn nao active" id="sinuca-nao" onclick="toggleOpcao('sinuca','nao')">
+          <input type="radio" name="sinuca-opc" value="nao" checked> ❌ Não vou participar
+        </label>
+      </div>
+      <!-- PIX sinuca (aparece só se sim) -->
+      <div id="sinuca-pix-section" style="display:none">
+        <div class="pix-box">
+          <div class="pix-icon">💸</div>
+          <div class="pix-info">
+            <div class="pix-label">Pagamento via PIX</div>
+            <!-- ✏️ ALTERE A CHAVE PIX ABAIXO -->
+            <div class="pix-key" id="pix-sinuca-key">chavepix@email.com</div>
+            <div class="pix-note">Envie R$ 20,00 e leve o comprovante no dia</div>
+          </div>
+          <button class="btn-copy-pix" onclick="copiarPix('pix-sinuca-key')"><i class="bi bi-clipboard me-1"></i>Copiar</button>
+        </div>
+      </div>
+
       <!-- Preview -->
-      <div class="preview-box" id="preview-box">
+      <div class="preview-box mt-4" id="preview-box">
         <h6><i class="bi bi-eye me-1"></i> Resumo da Confirmação</h6>
         <div id="preview-content"></div>
       </div>
 
-      <button class="btn-confirm" onclick="confirmarPresenca()">
+      <button class="btn-confirm mt-3" onclick="confirmarPresenca()">
         <i class="bi bi-check-circle me-2"></i>Confirmar Presença
       </button>
 
@@ -1001,6 +1127,21 @@
 
     <!-- Grade -->
     <div class="rifa-grid" id="rifa-grid"></div>
+
+    <!-- PIX rifa -->
+    <div class="mt-4">
+      <h5 style="font-family:'Abril Fatface',serif; color:var(--green); margin-bottom:1rem;">💸 Pagamento via PIX</h5>
+      <div class="pix-box">
+        <div class="pix-icon">💸</div>
+        <div class="pix-info">
+          <div class="pix-label">Chave PIX</div>
+          <!-- ✏️ ALTERE A CHAVE PIX ABAIXO -->
+          <div class="pix-key" id="pix-rifa-page-key">chavepix@email.com</div>
+          <div class="pix-note">R$ 20,00 por número · Leve o comprovante no dia do evento</div>
+        </div>
+        <button class="btn-copy-pix" onclick="copiarPix('pix-rifa-page-key')"><i class="bi bi-clipboard me-1"></i>Copiar Chave</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1076,6 +1217,21 @@
           <h4>Campeão do 6º Arraiá</h4>
           <p style="font-family:'Josefin Sans',sans-serif; font-size:1rem; margin-top:.5rem; color:var(--dark); opacity:.7">A ser definido durante o torneio</p>
         </div>
+      </div>
+    </div>
+
+    <!-- PIX sinuca -->
+    <div class="mt-5">
+      <h5 style="font-family:'Abril Fatface',serif; color:var(--green); margin-bottom:1rem;">💸 Pagamento via PIX</h5>
+      <div class="pix-box">
+        <div class="pix-icon">💸</div>
+        <div class="pix-info">
+          <div class="pix-label">Chave PIX</div>
+          <!-- ✏️ ALTERE A CHAVE PIX ABAIXO -->
+          <div class="pix-key" id="pix-sinuca-page-key">chavepix@email.com</div>
+          <div class="pix-note">R$ 20,00 por inscrição · 100% do valor vai ao campeão!</div>
+        </div>
+        <button class="btn-copy-pix" onclick="copiarPix('pix-sinuca-page-key')"><i class="bi bi-clipboard me-1"></i>Copiar Chave</button>
       </div>
     </div>
   </div>
@@ -1167,11 +1323,11 @@
         <div class="info-card">
           <h5><i class="bi bi-calendar2-event me-2"></i>Evento</h5>
           <ul>
-            <li><i class="bi bi-calendar"></i><span><strong>Data:</strong> Sábado, 18 de Julho de 2026</span></li>
+            <li><i class="bi bi-calendar"></i><span><strong>Data:</strong> Sábado, 28 de Junho de 2025</span></li>
             <li><i class="bi bi-clock"></i><span><strong>Horário:</strong> 16h00 até encerrar</span></li>
             <li><i class="bi bi-geo-alt"></i><span><strong>Local:</strong> Rua das Flores, 123 – Cariacica/ES</span></li>
             <li><i class="bi bi-people"></i><span><strong>Público:</strong> Aberto a todos os convidados</span></li>
-            <li><i class="bi bi-music-note"></i><span><strong>Música:</strong> Forró e sertanejo</span></li>
+            <li><i class="bi bi-music-note"></i><span><strong>Música:</strong> Forró, sertanejo e pop</span></li>
           </ul>
         </div>
       </div>
@@ -1266,7 +1422,7 @@
         <a href="#" class="social-btn"><i class="bi bi-facebook"></i></a>
       </div>
       <div class="col-md-4 text-center text-md-end" style="font-family:'Josefin Sans',sans-serif; font-size:.85rem; color:#c49a6c;">
-        Desenvolvido com ❤️<br>pela Comissão do Arraiá (Isaac)
+        Organizado com ❤️<br>pela Comissão do Arraiá
       </div>
     </div>
     <hr style="border-color:rgba(255,255,255,.1); margin:1.5rem 0" />
@@ -1305,6 +1461,10 @@ function fromDB(row) {
     email:      row.email || '',
     acomp:      row.acomp,
     acompDados: row.acomp_dados || [],
+    comidas:    row.comidas    || [],
+    rifa:       row.rifa       || false,
+    rifaNumero: row.rifa_numero || null,
+    sinuca:     row.sinuca     || false,
     data:       fmtData(row.data_confirmacao)
   };
 }
@@ -1340,7 +1500,8 @@ function showPage(id) {
   if (menu.classList.contains('show')) {
     new bootstrap.Collapse(menu).hide();
   }
-  if (id === 'lista') renderLista();
+  if (id === 'lista')  renderLista();
+  if (id === 'sinuca') renderSinuca();
 }
 
 // =====================================================
@@ -1395,17 +1556,32 @@ function updatePreview() {
   if (!nome && !whats) { box.style.display = 'none'; return; }
 
   const qtd = parseInt(document.getElementById('qtd-acomp').value) || 0;
-  const nomes = [...document.querySelectorAll('.acomp-nome')].map(i => i.value||'—');
+  const nomes  = [...document.querySelectorAll('.acomp-nome')].map(i => i.value||'—');
   const idades = [...document.querySelectorAll('.acomp-idade')].map(i => i.value||'—');
+
+  // comidas selecionadas
+  const comidasSel = [...document.querySelectorAll('#comidas-form-grid input[type=checkbox]:checked')]
+    .map(c => c.value);
+
+  // rifa
+  const rifaSim = document.getElementById('rifa-sim')?.classList.contains('active');
+  // sinuca
+  const sinucaSim = document.getElementById('sinuca-sim')?.classList.contains('active');
 
   let html = `<p class="mb-1"><strong>Responsável:</strong> ${nome || '—'}</p>`;
   html += `<p class="mb-1"><strong>WhatsApp:</strong> ${whats || '—'}</p>`;
-  html += `<p class="mb-1"><strong>Total de acompanhantes:</strong> ${qtd}</p>`;
+  html += `<p class="mb-1"><strong>Acompanhantes:</strong> ${qtd}</p>`;
   if (qtd > 0) {
-    html += `<ul class="mb-0 mt-1">`;
+    html += `<ul class="mb-1 mt-1">`;
     for (let i = 0; i < qtd; i++) html += `<li>${nomes[i]} · ${idades[i]} anos</li>`;
     html += `</ul>`;
   }
+  if (comidasSel.length > 0) {
+    html += `<p class="mb-1"><strong>🌽 Vai trazer:</strong> ${comidasSel.join(', ')}</p>`;
+  }
+  html += `<p class="mb-1"><strong>🎟️ Rifa:</strong> ${rifaSim ? `Sim — Número ${rifaNumSelecionado ? String(rifaNumSelecionado).padStart(3,'0') : 'não escolhido ainda'}` : 'Não'}</p>`;
+  html += `<p class="mb-0"><strong>🎱 Sinuca:</strong> ${sinucaSim ? 'Sim, vai jogar!' : 'Não'}</p>`;
+
   cont.innerHTML = html;
   box.style.display = 'block';
 }
@@ -1417,10 +1593,35 @@ async function confirmarPresenca() {
 
   const qtd = parseInt(document.getElementById('qtd-acomp').value) || 0;
   const acompDados = [];
-  const nomes = [...document.querySelectorAll('.acomp-nome')];
+  const nomes  = [...document.querySelectorAll('.acomp-nome')];
   const idades = [...document.querySelectorAll('.acomp-idade')];
   for (let i = 0; i < qtd; i++) {
     acompDados.push({ nome: nomes[i]?.value || 'Acompanhante', idade: idades[i]?.value || '—' });
+  }
+
+  // Comidas selecionadas
+  const comidasSel = [...document.querySelectorAll('#comidas-form-grid input[type=checkbox]:checked')]
+    .map(c => c.value);
+
+  // Rifa
+  const rifaSim   = document.getElementById('rifa-sim')?.classList.contains('active') || false;
+  const rifaNum   = rifaSim ? rifaNumSelecionado : null;
+
+  // Sinuca
+  const sinucaSim = document.getElementById('sinuca-sim')?.classList.contains('active') || false;
+
+  // Validação rifa
+  if (rifaSim && !rifaNum) {
+    alert('Você marcou que quer participar da rifa, mas não escolheu um número! Role a tela e selecione um número disponível.');
+    return;
+  }
+
+  // Checar se número já foi reservado (proteção local)
+  if (rifaNum && rifaEstados[rifaNum] && rifaEstados[rifaNum] !== 'disponivel') {
+    alert(`O número ${String(rifaNum).padStart(3,'0')} já foi reservado. Por favor escolha outro.`);
+    rifaNumSelecionado = null;
+    renderRifaForm();
+    return;
   }
 
   // Desabilitar botão durante o envio
@@ -1437,7 +1638,11 @@ async function confirmarPresenca() {
         whats,
         email: document.getElementById('resp-email').value || null,
         acomp: qtd,
-        acomp_dados: acompDados
+        acomp_dados: acompDados,
+        comidas: comidasSel,
+        rifa: rifaSim,
+        rifa_numero: rifaNum,
+        sinuca: sinucaSim
       })
     });
 
@@ -1446,6 +1651,12 @@ async function confirmarPresenca() {
     const [novo] = await res.json();
     confirmados.unshift(fromDB(novo));
 
+    // Marcar número como reservado localmente
+    if (rifaNum) {
+      rifaEstados[rifaNum] = 'reservado';
+      renderRifa();
+    }
+
     // Reset form
     document.getElementById('resp-nome').value = '';
     document.getElementById('resp-whats').value = '';
@@ -1453,10 +1664,20 @@ async function confirmarPresenca() {
     document.getElementById('qtd-acomp').value = '0';
     document.getElementById('acompanhantes-container').innerHTML = '';
     document.getElementById('preview-box').style.display = 'none';
+    // Reset comidas
+    document.querySelectorAll('#comidas-form-grid .comida-check-item').forEach(el => el.classList.remove('selected'));
+    document.querySelectorAll('#comidas-form-grid input[type=checkbox]').forEach(el => el.checked = false);
+    // Reset rifa/sinuca
+    toggleOpcao('rifa', 'nao');
+    toggleOpcao('sinuca', 'nao');
+    rifaNumSelecionado = null;
 
     const msg = document.getElementById('success-msg');
     msg.style.display = 'block';
     setTimeout(() => msg.style.display = 'none', 5000);
+
+    // Atualiza lista de sinuca
+    renderSinuca();
 
   } catch (err) {
     console.error(err);
@@ -1640,6 +1861,8 @@ const comidas = [
   { icon:'🍲', nome:'Caldos', desc:'Caldos quentinhos de frango, carne ou legumes.' },
   { icon:'🥥', nome:'Cocada', desc:'Doce de coco ralado com açúcar, branca ou queimada.' },
 ];
+
+// Página de comidas (cards)
 document.getElementById('comidas-grid').innerHTML = comidas.map(c => `
   <div class="col-6 col-md-4 col-lg-3">
     <div class="food-card">
@@ -1650,17 +1873,21 @@ document.getElementById('comidas-grid').innerHTML = comidas.map(c => `
   </div>
 `).join('');
 
+// Checkboxes de comida no formulário de confirmação
+document.getElementById('comidas-form-grid').innerHTML = comidas.map(c => `
+  <label class="comida-check-item" onclick="this.classList.toggle('selected'); updatePreview();">
+    <input type="checkbox" name="comida" value="${c.nome}">
+    <span>${c.icon} ${c.nome}</span>
+  </label>
+`).join('');
+
 // =====================================================
-// RIFA
+// RIFA — todos disponíveis por padrão, escolha interativa
 // =====================================================
+// rifaEstados: chave = número (1-100), valor = 'disponivel' | 'reservado' | 'vendido'
 const rifaEstados = {};
-const rifaData = [
-  // vendidos
-  ...[3,7,12,19,25,31,42,50,55,60,73,88,95].map(n => [n,'vendido']),
-  // reservados
-  ...[5,11,22,33,44,66,77,80,91,100].map(n => [n,'reservado']),
-];
-rifaData.forEach(([n, e]) => rifaEstados[n] = e);
+// Todos começam disponíveis — alterados apenas quando alguém escolhe
+let rifaNumSelecionado = null; // número selecionado no form de confirmação
 
 function renderRifa() {
   const grid = document.getElementById('rifa-grid');
@@ -1686,41 +1913,101 @@ function renderRifa() {
 }
 renderRifa();
 
+// Mini-rifa interativa dentro do formulário de confirmação
+function renderRifaForm() {
+  const grid = document.getElementById('rifa-form-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  for (let i = 1; i <= 100; i++) {
+    const estado = rifaEstados[i] || 'disponivel';
+    const selecionado = rifaNumSelecionado === i;
+    const div = document.createElement('div');
+    div.className = `rifa-num ${selecionado ? 'reservado' : estado}`;
+    div.style.cursor = estado === 'disponivel' ? 'pointer' : 'not-allowed';
+    div.textContent = String(i).padStart(3,'0');
+    div.title = estado !== 'disponivel' ? `Número ${String(i).padStart(3,'0')} — ${estado}` : `Selecionar número ${String(i).padStart(3,'0')}`;
+    if (estado === 'disponivel') {
+      div.onclick = () => {
+        rifaNumSelecionado = rifaNumSelecionado === i ? null : i;
+        renderRifaForm();
+        updatePreview();
+        const aviso = document.getElementById('rifa-num-escolhido');
+        aviso.textContent = rifaNumSelecionado
+          ? `✅ Número selecionado: ${String(rifaNumSelecionado).padStart(3,'0')} — lembre de pagar via PIX!`
+          : '';
+      };
+    }
+    grid.appendChild(div);
+  }
+}
+
+// =====================================================
+// TOGGLE PARTICIPAÇÃO RIFA / SINUCA
+// =====================================================
+function toggleOpcao(tipo, valor) {
+  document.getElementById(`${tipo}-sim`).classList.toggle('active', valor === 'sim');
+  document.getElementById(`${tipo}-nao`).classList.toggle('active', valor === 'nao');
+  if (tipo === 'rifa') {
+    const sec = document.getElementById('rifa-num-section');
+    sec.style.display = valor === 'sim' ? 'block' : 'none';
+    if (valor === 'sim') renderRifaForm();
+    else { rifaNumSelecionado = null; }
+  }
+  if (tipo === 'sinuca') {
+    document.getElementById('sinuca-pix-section').style.display = valor === 'sim' ? 'block' : 'none';
+  }
+  updatePreview();
+}
+
+// =====================================================
+// COPIAR PIX
+// =====================================================
+function copiarPix(elId) {
+  const txt = document.getElementById(elId).textContent;
+  navigator.clipboard.writeText(txt).then(() => {
+    const btn = document.querySelector(`[onclick="copiarPix('${elId}')"]`);
+    if (btn) {
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<i class="bi bi-check2 me-1"></i>Copiado!';
+      btn.style.background = '#219a52';
+      setTimeout(() => { btn.innerHTML = orig; btn.style.background = ''; }, 2000);
+    }
+  }).catch(() => alert('Chave PIX: ' + txt));
+}
+
 // =====================================================
 // SINUCA — PARTICIPANTES E CHAVEAMENTO
 // =====================================================
-const sinucaParticipantes = [
-  { nome:'Carlos Mendes',   status:'inscrito' },
-  { nome:'Roberto Lima',    status:'inscrito' },
-  { nome:'Paulo Nunes',     status:'inscrito' },
-  { nome:'Fernando Costa',  status:'inscrito' },
-  { nome:'André Mota',      status:'pendente' },
-  { nome:'Diego Alves',     status:'inscrito' },
-  { nome:'Rafael Torres',   status:'cancelado' },
-  { nome:'Gustavo Ramos',   status:'inscrito' },
-];
+// A lista de participantes agora é alimentada pelos confirmados
+// que marcaram "sim" na sinuca. Exibição dinâmica via renderSinuca().
+function renderSinuca() {
+  const partEl = document.getElementById('sinuca-participantes');
+  const jogadores = confirmados.filter(c => c.sinuca === true || c.sinuca === 'sim');
+  const total = jogadores.length;
+  document.getElementById('sinuca-total-val').textContent =
+    `R$ ${(total * 20).toFixed(2).replace('.',',')}`;
+  if (total === 0) {
+    partEl.innerHTML = '<p style="color:#aaa; font-size:.9rem; text-align:center; padding:1rem 0">Nenhum inscrito ainda.</p>';
+    return;
+  }
+  partEl.innerHTML = jogadores.map(p => `
+    <div class="sinuca-participant">
+      <span>${p.nome}</span>
+      <span class="badge-inscrito">Inscrito</span>
+    </div>
+  `).join('');
+}
 
-const partEl = document.getElementById('sinuca-participantes');
-const inscritos = sinucaParticipantes.filter(p => p.status === 'inscrito').length;
-document.getElementById('sinuca-total-val').textContent = `R$ ${(inscritos * 20).toFixed(2).replace('.',',')}`;
-
-partEl.innerHTML = sinucaParticipantes.map(p => `
-  <div class="sinuca-participant">
-    <span>${p.nome}</span>
-    <span class="badge-${p.status}">${p.status.charAt(0).toUpperCase() + p.status.slice(1)}</span>
-  </div>
-`).join('');
-
-// Chaveamento fictício
+// Chaveamento fictício (visual)
 const matches = [
-  { r:'Oitavas', p1:'Carlos Mendes', p2:'Gustavo Ramos', s1:2, s2:1, winner:0 },
-  { r:'Oitavas', p1:'Roberto Lima',  p2:'Fernando Costa', s1:1, s2:2, winner:1 },
-  { r:'Oitavas', p1:'Paulo Nunes',   p2:'André Mota',     s1:2, s2:0, winner:0 },
-  { r:'Oitavas', p1:'Diego Alves',   p2:'Rafael Torres',  s1:2, s2:1, winner:0 },
+  { r:'Oitavas', p1:'—', p2:'—', s1:'', s2:'', winner:-1 },
+  { r:'Oitavas', p1:'—', p2:'—', s1:'', s2:'', winner:-1 },
+  { r:'Oitavas', p1:'—', p2:'—', s1:'', s2:'', winner:-1 },
+  { r:'Oitavas', p1:'—', p2:'—', s1:'', s2:'', winner:-1 },
 ];
 const semis = [
-  { r:'Semifinal', p1:'Carlos Mendes',  p2:'Fernando Costa', s1:'', s2:'', winner:-1 },
-  { r:'Semifinal', p1:'Paulo Nunes',    p2:'Diego Alves',    s1:'', s2:'', winner:-1 },
+  { r:'Semifinal', p1:'A definir', p2:'A definir', s1:'', s2:'', winner:-1 },
+  { r:'Semifinal', p1:'A definir', p2:'A definir', s1:'', s2:'', winner:-1 },
 ];
 const final = [{ r:'Final', p1:'A definir', p2:'A definir', s1:'', s2:'', winner:-1 }];
 
@@ -1751,6 +2038,7 @@ document.getElementById('bracket').innerHTML = `
     ${renderBracket(final)}
   </div>
 `;
+renderSinuca();
 
 // =====================================================
 // INIT
