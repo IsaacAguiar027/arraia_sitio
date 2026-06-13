@@ -67,6 +67,7 @@ function showPage(id) {
     new bootstrap.Collapse(menu).hide();
   }
   if (id === 'lista')  renderLista();
+  if (id === 'rifa')   renderRifa();
   if (id === 'sinuca') renderSinuca();
 }
 
@@ -448,20 +449,36 @@ document.getElementById('comidas-form-grid').innerHTML = comidas.map(c => `
 `).join('');
 
 // =====================================================
-// RIFA — todos disponíveis por padrão, escolha interativa
+// RIFA — estados carregados do Supabase
 // =====================================================
-// rifaEstados: chave = número (1-100), valor = 'disponivel' | 'reservado' | 'vendido'
 const rifaEstados = {};
-// Todos começam disponíveis — alterados apenas quando alguém escolhe
-let rifaNumSelecionado = null; // número selecionado no form de confirmação
+let rifaNumSelecionado = null;
 
-function renderRifa() {
+// Busca todos os números já reservados no banco
+async function carregarNumerosRifa() {
+  try {
+    const res = await fetch(
+      `${SB_URL}/confirmados?select=rifa_numero&rifa=eq.true&rifa_numero=not.is.null`,
+      { headers: SB_HEADERS }
+    );
+    if (!res.ok) throw new Error(await res.text());
+    const rows = await res.json();
+    Object.keys(rifaEstados).forEach(k => delete rifaEstados[k]);
+    rows.forEach(r => { if (r.rifa_numero) rifaEstados[r.rifa_numero] = 'reservado'; });
+  } catch (err) {
+    console.error('Erro ao carregar números da rifa:', err);
+  }
+}
+
+// Aba Rifa: busca banco e renderiza grade (somente leitura)
+async function renderRifa() {
   const grid = document.getElementById('rifa-grid');
-  let vendidos = 0, reservados = 0;
+  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#aaa;padding:1.5rem">Carregando...</div>';
+  await carregarNumerosRifa();
+  let reservados = 0;
   grid.innerHTML = '';
   for (let i = 1; i <= 100; i++) {
     const estado = rifaEstados[i] || 'disponivel';
-    if (estado === 'vendido') vendidos++;
     if (estado === 'reservado') reservados++;
     const div = document.createElement('div');
     div.className = `rifa-num ${estado}`;
@@ -469,20 +486,28 @@ function renderRifa() {
     div.title = `Número ${String(i).padStart(3,'0')} — ${estado}`;
     grid.appendChild(div);
   }
-  const disponiveis = 100 - vendidos - reservados;
+  const disponiveis = 100 - reservados;
   document.getElementById('rifa-stats-boxes').innerHTML = `
     <div class="rifa-stat-box"><div class="num">100</div><div class="lbl">Total</div></div>
     <div class="rifa-stat-box"><div class="num" style="color:var(--green)">${disponiveis}</div><div class="lbl">Disponíveis</div></div>
     <div class="rifa-stat-box"><div class="num" style="color:var(--orange)">${reservados}</div><div class="lbl">Reservados</div></div>
-    <div class="rifa-stat-box"><div class="num" style="color:var(--red)">${vendidos}</div><div class="lbl">Vendidos</div></div>
+    <div class="rifa-stat-box"><div class="num" style="color:var(--red)">0</div><div class="lbl">Vendidos</div></div>
   `;
 }
 renderRifa();
 
-// Mini-rifa interativa dentro do formulário de confirmação
-function renderRifaForm() {
+// Mini-rifa interativa no formulário — busca banco antes de mostrar
+async function renderRifaForm() {
   const grid = document.getElementById('rifa-form-grid');
   if (!grid) return;
+  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#aaa;padding:1rem">Carregando...</div>';
+  await carregarNumerosRifa();
+  // Se o número selecionado foi reservado por outra pessoa, deseleciona
+  if (rifaNumSelecionado && rifaEstados[rifaNumSelecionado] === 'reservado') {
+    rifaNumSelecionado = null;
+    document.getElementById('rifa-num-escolhido').textContent =
+      '⚠️ Esse número foi reservado por outra pessoa. Escolha outro.';
+  }
   grid.innerHTML = '';
   for (let i = 1; i <= 100; i++) {
     const estado = rifaEstados[i] || 'disponivel';
@@ -491,7 +516,9 @@ function renderRifaForm() {
     div.className = `rifa-num ${selecionado ? 'reservado' : estado}`;
     div.style.cursor = estado === 'disponivel' ? 'pointer' : 'not-allowed';
     div.textContent = String(i).padStart(3,'0');
-    div.title = estado !== 'disponivel' ? `Número ${String(i).padStart(3,'0')} — ${estado}` : `Selecionar número ${String(i).padStart(3,'0')}`;
+    div.title = estado !== 'disponivel'
+      ? `Número ${String(i).padStart(3,'0')} — reservado`
+      : `Selecionar número ${String(i).padStart(3,'0')}`;
     if (estado === 'disponivel') {
       div.onclick = () => {
         rifaNumSelecionado = rifaNumSelecionado === i ? null : i;
