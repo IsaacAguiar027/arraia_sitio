@@ -652,6 +652,33 @@ document.getElementById('bracket').innerHTML = `
 `;
 renderSinuca();
 
+// banner do hero
+const imagens = [
+    "img/img5.jpeg",
+    "img/img4.jpeg",
+    "img/img2.jpeg",
+    "img/img1.jpeg",
+    "img/img6.jpeg",
+    "img/img3.jpeg"
+];
+
+const banner = document.querySelector(".hero");
+
+let indice = 0;
+
+function trocarImagem() {
+    banner.style.backgroundImage = `url('${imagens[indice]}')`;
+
+    indice++;
+    if (indice >= imagens.length) {
+        indice = 0;
+    }
+}
+
+trocarImagem();
+
+setInterval(trocarImagem, 4000);
+
 // =====================================================
 // INIT
 // =====================================================
