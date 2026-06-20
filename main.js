@@ -329,6 +329,7 @@ function filtrarLista() {
       <td><span class="badge-group" style="background:#f0e9dc; color:#7a2b10">${c.acomp}</span></td>
       <td><strong>${1 + c.acomp}</strong></td>
       <td style="font-size:.85rem; color:#888">${c.data}</td>
+      <td>${c.comidas.length > 0 ? c.comidas.map(comida => `<span class="badge-group" style="background:#e0f7fa; color:#00796b">${comida}</span>`).join(' ') : ''}</td>
       <td style="text-align:center">
         <button class="btn-apagar" onclick="pedirSenhaApagar('${c.id}', '${nomeEsc}')">
           <i class="bi bi-trash me-1"></i>Apagar
@@ -445,7 +446,7 @@ const comidas = [
   { icon:'🍲', nome:'Bolo de cenoura', desc:'' },
   { icon:'🫔', nome:'Chocolate quente', desc:'' },
   { icon:'🍲', nome:'Quentão', desc:'' },
-  { icon:'🫔', nome:'Pastel', desc:'' },
+  { icon:'❓', nome:'Outros', input: true, desc:'Vai trazer outra delícia típica? Escreve no WhatsApp!' }
 ];
 
 // Página de comidas (cards)
@@ -458,6 +459,38 @@ document.getElementById('comidas-grid').innerHTML = comidas.map(c => `
     </div>
   </div>
 `).join('');
+
+const grid = document.getElementById('comidas-form-grid');
+
+comidas.forEach((comida, index) => {
+  const item = document.createElement('label');
+  item.className = 'comida-check';
+
+  item.innerHTML = `
+    <input type="radio" name="comida" value="${comida.nome}" id="comida-${index}">
+    <span>${comida.icon} ${comida.nome}</span>
+  `;
+
+  grid.appendChild(item);
+});
+
+grid.addEventListener('change', (e) => {
+  let outroInput = document.getElementById('outro-comida');
+
+  if (e.target.value === 'Outros') {
+    if (!outroInput) {
+      outroInput = document.createElement('input');
+      outroInput.type = 'text';
+      outroInput.id = 'outro-comida';
+      outroInput.className = 'form-control mt-2';
+      outroInput.placeholder = 'Digite o que você vai trazer';
+
+      grid.appendChild(outroInput);
+    }
+  } else if (outroInput) {
+    outroInput.remove();
+  }
+});
 
 // Checkboxes de comida no formulário de confirmação
 document.getElementById('comidas-form-grid').innerHTML = comidas.map(c => `
