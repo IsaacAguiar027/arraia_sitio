@@ -29,7 +29,7 @@ function fromDB(row) {
     acompDados: row.acomp_dados || [],
     comidas:    row.comidas    || [],
     rifa:       row.rifa       || false,
-    rifaNumero: row.rifa_numero || null,
+    rifaNumeros: row.rifa_numero || [],
     sinuca:     row.sinuca     || false,
     data:       fmtData(row.data_confirmacao)
   };
@@ -331,6 +331,8 @@ function filtrarLista() {
       <td style="font-size:.85rem; color:#888">${c.data}</td>
       <td>${c.comidas.length > 0 ? c.comidas.map(comida => `<span class="badge-group" style="background:#e0f7fa; color:#00796b">${comida}</span>`).join(' ') : ''}</td>
       <td style="text-align:center">
+      <td>${c.rifa && c.rifaNumeros && c.rifaNumeros.length > 0 ? c.rifaNumeros.map(n => `<span style="background:#fff3e0;border:1px solid #f39c12;color:#e67e22;border-radius:6px;padding:2px 7px;margin:1px;display:inline-block;font-family:'Josefin Sans',sans-serif;font-weight:700">${String(n).padStart(3,'0')}</span>`).join(' ') : '<span style="color:#ccc">—</span>'}
+      </td>
         <button class="btn-apagar" onclick="pedirSenhaApagar('${c.id}', '${nomeEsc}')">
           <i class="bi bi-trash me-1"></i>Apagar
         </button>
@@ -504,7 +506,7 @@ document.getElementById('comidas-form-grid').innerHTML = comidas.map(c => `
 // RIFA — estados carregados do Supabase
 // =====================================================
 const rifaEstados = {};
-let rifaNumSelecionado = null;
+let rifaNumSelecionado = [];
 
 // Busca todos os números já reservados no banco
 async function carregarNumerosRifa() {
