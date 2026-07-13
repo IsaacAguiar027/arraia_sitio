@@ -146,7 +146,11 @@ function updatePreview() {
   if (comidasSel.length > 0) {
     html += `<p class="mb-1"><strong>🌽 Vai trazer:</strong> ${comidasSel.join(', ')}</p>`;
   }
-  html += `<p class="mb-1"><strong>🎟️ Rifa:</strong> ${rifaSim ? `Sim — Número ${rifaNumSelecionado ? String(rifaNumSelecionado).padStart(3,'0') : 'não escolhido ainda'}` : 'Não'}</p>`;
+  html += `<p class="mb-1"><strong>🎟️ Rifa:</strong> ${rifaSim
+  ? (rifaNumSelecionados.size > 0
+      ? `Sim — Números: ${[...rifaNumSelecionados].sort((a,b)=>a-b).map(n=>String(n).padStart(3,'00')).join(', ')} (R$ ${rifaNumSelecionados.size * 20},00)`
+      : 'Sim — nenhum número escolhido ainda')
+  : 'Não'}</p>`;
   html += `<p class="mb-0"><strong>🎱 Sinuca:</strong> ${sinucaSim ? 'Sim, vai jogar!' : 'Não'}</p>`;
 
   cont.innerHTML = html;
@@ -172,21 +176,24 @@ async function confirmarPresenca() {
 
   // Rifa
   const rifaSim   = document.getElementById('rifa-sim')?.classList.contains('active') || false;
-  const rifaNum   = rifaSim ? rifaNumSelecionado : null;
+  const rifaNums   = rifaSim ? [...rifaNumSelecionados] : [];
+  console.log('rifaNums:', rifaNums, typeof rifaNums);
 
   // Sinuca
   const sinucaSim = document.getElementById('sinuca-sim')?.classList.contains('active') || false;
 
   // Validação rifa
-  if (rifaSim && !rifaNum) {
+  if (rifaSim && (!rifaNums || rifaNums.length === 0)) {
     alert('Você marcou que quer participar da rifa, mas não escolheu um número! Role a tela e selecione um número disponível.');
     return;
   }
 
   // Checar se número já foi reservado (proteção local)
-  if (rifaNum && rifaEstados[rifaNum] && rifaEstados[rifaNum] !== 'disponivel') {
-    alert(`O número ${String(rifaNum).padStart(3,'0')} já foi reservado. Por favor escolha outro.`);
-    rifaNumSelecionado = null;
+  // Checar se algum número já foi reservado (proteção local)
+  const numConflito = rifaNums.find(n => rifaEstados[n] === 'reservado');
+  if (numConflito) {
+    alert(`O número ${String(numConflito).padStart(3,'0')} já foi reservado. Por favor escolha outro.`);
+    rifaNumSelecionados.delete(numConflito);
     renderRifaForm();
     return;
   }
@@ -208,7 +215,7 @@ async function confirmarPresenca() {
         acomp_dados: acompDados,
         comidas: comidasSel,
         rifa: rifaSim,
-        rifa_numero: rifaNum,
+        rifa_numero: rifaNums && rifaNums.length > 0 ? rifaNums[0] : null,
         sinuca: sinucaSim
       })
     });
@@ -219,7 +226,8 @@ async function confirmarPresenca() {
     confirmados.unshift(fromDB(novo));
 
     // Marcar número como reservado localmente
-    if (rifaNum) {
+    if (rifaNums && rifaNums.length > 0) {
+      const rifaNum = rifaNums[0];
       rifaEstados[rifaNum] = 'reservado';
       renderRifa();
     }
@@ -237,7 +245,7 @@ async function confirmarPresenca() {
     // Reset rifa/sinuca
     toggleOpcao('rifa', 'nao');
     toggleOpcao('sinuca', 'nao');
-    rifaNumSelecionado = null;
+    rifaNumSelecionados.clear();
 
     const msg = document.getElementById('success-msg');
     msg.style.display = 'block';
@@ -329,10 +337,9 @@ function filtrarLista() {
       <td><span class="badge-group" style="background:#f0e9dc; color:#7a2b10">${c.acomp}</span></td>
       <td><strong>${1 + c.acomp}</strong></td>
       <td style="font-size:.85rem; color:#888">${c.data}</td>
-      <td>${c.comidas.length > 0 ? c.comidas.map(comida => `<span class="badge-group" style="background:#e0f7fa; color:#00796b">${comida}</span>`).join(' ') : ''}</td>
-      <td style="text-align:center">
+      <td>${c.comidas.length > 0 ? c.comidas.map(comida => `<span class="badge-group" style="background:#e0f7fa; display:flex; color:#00796b">${comida}</span>`).join(' ') : ''}</td>
       <td>${c.rifa && c.rifaNumeros && c.rifaNumeros.length > 0 ? c.rifaNumeros.map(n => `<span style="background:#fff3e0;border:1px solid #f39c12;color:#e67e22;border-radius:6px;padding:2px 7px;margin:1px;display:inline-block;font-family:'Josefin Sans',sans-serif;font-weight:700">${String(n).padStart(3,'0')}</span>`).join(' ') : '<span style="color:#ccc">—</span>'}
-      </td>
+      <td>
         <button class="btn-apagar" onclick="pedirSenhaApagar('${c.id}', '${nomeEsc}')">
           <i class="bi bi-trash me-1"></i>Apagar
         </button>
@@ -506,23 +513,28 @@ document.getElementById('comidas-form-grid').innerHTML = comidas.map(c => `
 // RIFA — estados carregados do Supabase
 // =====================================================
 const rifaEstados = {};
-let rifaNumSelecionado = [];
+let rifaNumSelecionados = new Set();
 
 // Busca todos os números já reservados no banco
 async function carregarNumerosRifa() {
   try {
     const res = await fetch(
-      `${SB_URL}/confirmados?select=rifa_numero&rifa=eq.true&rifa_numero=not.is.null`,
+      `${SB_URL}/confirmados?select=rifa_numero&rifa=eq.true`,
       { headers: SB_HEADERS }
     );
     if (!res.ok) throw new Error(await res.text());
     const rows = await res.json();
     Object.keys(rifaEstados).forEach(k => delete rifaEstados[k]);
-    rows.forEach(r => { if (r.rifa_numero) rifaEstados[r.rifa_numero] = 'reservado'; });
+    rows.forEach(r => {
+      if (Array.isArray(r.rifa_numero)) {
+        r.rifa_numero.forEach(n => { if (n) rifaEstados[n] = 'reservado'; });
+      }
+    });
   } catch (err) {
     console.error('Erro ao carregar números da rifa:', err);
   }
 }
+
 
 // Aba Rifa: busca banco e renderiza grade (somente leitura)
 async function renderRifa() {
@@ -550,24 +562,27 @@ async function renderRifa() {
 }
 renderRifa();
 
-// Mini-rifa interativa no formulário — busca banco antes de mostrar
+// Mini-rifa interativa no formulário — seleção múltipla
 async function renderRifaForm() {
   const grid = document.getElementById('rifa-form-grid');
   if (!grid) return;
   grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#aaa;padding:1rem">Carregando...</div>';
   await carregarNumerosRifa();
-  // Se o número selecionado foi reservado por outra pessoa, deseleciona
-  if (rifaNumSelecionado && rifaEstados[rifaNumSelecionado] === 'reservado') {
-    rifaNumSelecionado = null;
-    document.getElementById('rifa-num-escolhido').textContent =
-      '⚠️ Esse número foi reservado por outra pessoa. Escolha outro.';
+
+  // Remove da seleção qualquer número que já foi reservado por outra pessoa
+  rifaNumSelecionados.forEach(n => {
+    if (rifaEstados[n] === 'reservado') rifaNumSelecionados.delete(n);
+  });
+  if (rifaNumSelecionados.size === 0) {
+    document.getElementById('rifa-num-escolhido').textContent = '';
   }
+
   grid.innerHTML = '';
   for (let i = 1; i <= 100; i++) {
     const estado = rifaEstados[i] || 'disponivel';
-    const selecionado = rifaNumSelecionado === i;
+    const selecionado = rifaNumSelecionados.has(i);
     const div = document.createElement('div');
-    div.className = `rifa-num ${selecionado ? 'reservado' : estado}`;
+    div.className = `rifa-num ${selecionado ? 'selecionado' : estado}`;
     div.style.cursor = estado === 'disponivel' ? 'pointer' : 'not-allowed';
     div.textContent = String(i).padStart(3,'0');
     div.title = estado !== 'disponivel'
@@ -575,12 +590,14 @@ async function renderRifaForm() {
       : `Selecionar número ${String(i).padStart(3,'0')}`;
     if (estado === 'disponivel') {
       div.onclick = () => {
-        rifaNumSelecionado = rifaNumSelecionado === i ? null : i;
-        renderRifaForm();
+        if (rifaNumSelecionados.has(i)) rifaNumSelecionados.delete(i);
+        else rifaNumSelecionados.add(i);
+        // Atualiza só este div sem re-renderizar tudo
+        div.className = `rifa-num ${rifaNumSelecionados.has(i) ? 'selecionado' : 'disponivel'}`;
         updatePreview();
         const aviso = document.getElementById('rifa-num-escolhido');
-        aviso.textContent = rifaNumSelecionado
-          ? `✅ Número selecionado: ${String(rifaNumSelecionado).padStart(3,'0')} — lembre de pagar via PIX!`
+        aviso.textContent = rifaNumSelecionados.size > 0
+          ? `✅ Selecionados: ${[...rifaNumSelecionados].sort((a,b)=>a-b).map(n=>String(n).padStart(3,'0')).join(', ')} — R$ ${rifaNumSelecionados.size * 20},00 via PIX`
           : '';
       };
     }

@@ -375,6 +375,7 @@
     }
     .rifa-num.disponivel { background: #e8f5e9; border-color: #27ae60; color: #27ae60; }
     .rifa-num.reservado  { background: #fff3e0; border-color: #f39c12; color: #f39c12; }
+    .rifa-num.selecionado { background: #e3f2fd; border-color: #2980b9; color: #2980b9; }
     .rifa-num.vendido    { background: #fce4ec; border-color: #c0392b; color: #c0392b; }
     .rifa-num:hover { transform: scale(1.1); }
     .rifa-legend {
