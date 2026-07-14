@@ -527,7 +527,7 @@ async function carregarNumerosRifa() {
     Object.keys(rifaEstados).forEach(k => delete rifaEstados[k]);
     rows.forEach(r => {
       if (Array.isArray(r.rifa_numero)) {
-        r.rifa_numero.forEach(n => { if (n) rifaEstados[n] = 'reservado'; });
+        r.rifa_numero.forEach(n => { if (n) rifaEstados[parseInt(n)] = 'reservado'; });
       }
     });
   } catch (err) {
