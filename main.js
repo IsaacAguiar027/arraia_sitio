@@ -215,7 +215,7 @@ async function confirmarPresenca() {
         acomp_dados: acompDados,
         comidas: comidasSel,
         rifa: rifaSim,
-        rifa_numero: rifaNums && rifaNums.length > 0 ? rifaNums[0] : null,
+        rifa_numero: rifaNums && rifaNums.length > 0 ? rifaNums : [],
         sinuca: sinucaSim
       })
     });
@@ -227,8 +227,9 @@ async function confirmarPresenca() {
 
     // Marcar número como reservado localmente
     if (rifaNums && rifaNums.length > 0) {
-      const rifaNum = rifaNums[0];
-      rifaEstados[rifaNum] = 'reservado';
+      rifaNums.forEach(num => {
+        rifaEstados[num] = 'reservado';
+      });
       renderRifa();
     }
 
